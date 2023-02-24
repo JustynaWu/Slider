@@ -65,6 +65,14 @@ const createSlider = (function () {
     return (activeSlideIndex = nextIndex);
   };
 
+  let scrollTimer;
+  const autoScrollHandler = () => {
+    scrollTimer = setInterval(() => {
+      getNextSlide();
+    }, 3000);
+  };
+  const stopAutoScrollHandler = () => clearInterval(scrollTimer);
+
   const init = (sliderRoot, config) => {
     activeSlideIndex = 0;
     slides = getSlides(sliderRoot);
@@ -78,20 +86,6 @@ const createSlider = (function () {
       getPrevSlide();
     });
 
-    const autoChangeSlides = () => {
-      setInterval(() => {
-        getNextSlide();
-      }, 3000);
-    };
-
-    const autoSlideHandler = () => {
-      autoChangeSlides();
-    };
-
-    const stopAutoSlideHandler = () => {
-      clearInterval(autoChangeSlides);
-    };
-
     if (config) {
       if (config.showNavigationButtons) {
         buttons;
@@ -100,10 +94,11 @@ const createSlider = (function () {
           .querySelector(SLIDER_CLASSES.NAVIGATION_BUTTONS)
           .classList.add(SLIDER_CLASSES.ADD_NO_NAVIGATION_BUTTONS);
       }
-      if (config.autoplay) {
-        autoSlideHandler();
+
+      if (config.autoScroll) {
+        autoScrollHandler();
       } else {
-        stopAutoSlideHandler();
+        stopAutoScrollHandler();
       }
     }
   };

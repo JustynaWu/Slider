@@ -2,7 +2,7 @@ const slider1 = document.getElementById("slider1");
 const slider2 = document.getElementById("slider2");
 
 const config1 = {
-  autoplay: true,
+  autoScroll: true,
   showNavigationButtons: true,
 };
 
