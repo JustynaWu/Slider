@@ -20,38 +20,25 @@
   display: block;
 }
 
-.navigation-buttons {
-  display: none;
-}
-
-.navigation-buttons .btn {
+.slider-navigation-button {
   position: absolute;
   top: 50%;
   transform: translate(0, -50%);
 }
 
-.navigation-buttons .btn.btn-prev {
+.slider-navigation-button-prev {
   left: 0;
 }
 
-.navigation-buttons .btn.btn-next {
+.slider-navigation-button-next {
   right: 0;
 }
 
-.showNavigationButtons {
+.show-slider-navigation {
   display: block;
 }
 
 .placeholder {
   width: 400px;
   height: 200px;
-  display: none;
-}
-
-.placeholder.show-placeholder {
-  display: block;
-}
-
-.placeholder.show-placeholder + .navigation-buttons {
-  display: none;
 }

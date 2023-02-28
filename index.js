@@ -7,6 +7,10 @@ const config1 = {
   autoScroll: true,
 };
 
+const config2 = {
+  customPlaceholder: "https://via.placeholder.com/400x400",
+};
+
 createSlider.init(slider1, config1);
 createSlider.init(slider2);
-createSlider.init(slider3);
+createSlider.init(slider3, config2);
