@@ -1,3 +1,9 @@
+const DEFAULT_CONFIG = {
+  showNavigationButtons: false,
+  autoScroll: true,
+  placeholder: "https://via.placeholder.com/400x200",
+  intervalTime: 3000,
+};
 const SLIDER_CLASSES = {
   SLIDER_CONTAINER: ".slider-container",
   LIST: ".slider-list",
@@ -9,136 +15,145 @@ const SLIDER_CLASSES = {
   BTN_PREV: ".slider-navigation-button-prev",
   BTN_NEXT: ".slider-navigation-button-next",
 };
+/**
+ * Class responsible for handling the slider initialization
+ */
+class Slider {
+  /**
+    Constructor - saves the parameters and default values.
+   * After that it initiates (automatically - no need for manual initation) the class logic.
+   * Parameters passed in the constructor are used in the init function.
+   * @param customSliderRoot
+   * @param customConfig
+   */
 
-const createSlider = (function () {
-  const getSlides = (sliderRoot) => {
-    const list = sliderRoot.querySelector(SLIDER_CLASSES.LIST);
-    const slides = list.querySelectorAll(SLIDER_CLASSES.ITEM);
+  constructor(customSliderRoot, customConfig) {
+    this.classes = SLIDER_CLASSES;
+    this.defaultConfig = DEFAULT_CONFIG;
+    this.sliderRoot;
+    this.activeSlideIndex = 0;
+    this.slides = [];
+    this.buttons = { prevButton: null, nextButton: null };
+    this.timer;
+    this.init(customSliderRoot, customConfig);
+  }
+
+  getSlides() {
+    const list = this.sliderRoot.querySelector(this.classes.LIST);
+    const slides = list.querySelectorAll(this.classes.ITEM);
     return slides;
-  };
+  }
 
-  const getButtons = (sliderRoot) => {
-    const navigation = sliderRoot.querySelector(
-      SLIDER_CLASSES.NAVIGATION_BUTTONS
+  getButtons() {
+    const navigation = this.sliderRoot.querySelector(
+      this.classes.NAVIGATION_BUTTONS
     );
-    const prevButton = navigation.querySelector(SLIDER_CLASSES.BTN_PREV);
-    const nextButton = navigation.querySelector(SLIDER_CLASSES.BTN_NEXT);
+    const prevButton = navigation.querySelector(this.classes.BTN_PREV);
+    const nextButton = navigation.querySelector(this.classes.BTN_NEXT);
 
     return {
       prevButton,
       nextButton,
     };
-  };
+  }
 
-  const getPlaceholder = (sliderRoot, customPlaceholder) => {
-    const imageContainer = document.createElement("div");
-    imageContainer.classList.add("placeholder");
-    const image = document.createElement("img");
-    const imageParent = sliderRoot.querySelector(
-      SLIDER_CLASSES.SLIDER_CONTAINER
+  createSlide(src, alt) {
+    const slide = document.createElement("li");
+    slide.classList.add("slider-item.slider-item-active");
+    slide.innerHTML = `<img
+        width="400"
+        height="200"
+        class="image"
+        src="${src}"
+        alt="${alt}"
+      />`;
+
+    return slide;
+  }
+
+  getPrevSlideIndex() {
+    return this.activeSlideIndex === 0
+      ? this.slides.length - 1
+      : this.activeSlideIndex - 1;
+  }
+
+  getNextSlideIndex() {
+    return this.activeSlideIndex >= this.slides.length - 1
+      ? 0
+      : this.activeSlideIndex + 1;
+  }
+
+  selectSlide(newSlideIndex) {
+    this.slides.forEach((slide) =>
+      slide.classList.remove(this.classes.ITEM_ACTIVE)
     );
-    image.src = customPlaceholder;
-    image.alt = "Placeholder image";
-    imageContainer.appendChild(image);
-    imageParent.appendChild(imageContainer);
+    this.slides[newSlideIndex].classList.add(this.classes.ITEM_ACTIVE);
+    this.activeSlideIndex = newSlideIndex;
+  }
 
-    sliderRoot.querySelector(SLIDER_CLASSES.NAVIGATION_BUTTONS).remove();
-  };
+  selectPrevSlide() {
+    const prevSlideIndex = this.getPrevSlideIndex();
+    this.selectSlide(prevSlideIndex);
+    this.initAutoscroll();
+  }
 
-  const getPrevSlideIndex = (activeSlideIndex, slides) => {
-    return activeSlideIndex === 0 ? slides.length - 1 : activeSlideIndex - 1;
-  };
+  selectNextSlide() {
+    const nextSlideIndex = this.getNextSlideIndex();
+    this.selectSlide(nextSlideIndex);
+    this.initAutoscroll();
+  }
 
-  const getNextSlideIndex = (activeSlideIndex, slides) => {
-    return activeSlideIndex >= slides.length - 1 ? 0 : activeSlideIndex + 1;
-  };
-
-  const selectSlide = (slides, newSlideIndex) => {
-    slides.forEach((slide) =>
-      slide.classList.remove(SLIDER_CLASSES.ITEM_ACTIVE)
+  initPlaceholder() {
+    if (this.slides.length > 0) {
+      return;
+    }
+    const placeholderSlide = this.createSlide(
+      this.config.placeholder,
+      "Placeholder"
     );
-    slides[newSlideIndex].classList.add(SLIDER_CLASSES.ITEM_ACTIVE);
-  };
+    const list = this.sliderRoot.querySelector(this.classes.LIST);
+    list.appendChild(placeholderSlide);
+    this.slides = this.getSlides();
+  }
 
-  const getPrevSlide = (slides, activeSlideIndex) => {
-    const prevSlideIndex = getPrevSlideIndex(activeSlideIndex, slides);
-    selectSlide(slides, prevSlideIndex);
-
-    return prevSlideIndex;
-  };
-
-  const getNextSlide = (slides, activeSlideIndex) => {
-    const nextSlideIndex = getNextSlideIndex(activeSlideIndex, slides);
-    selectSlide(slides, nextSlideIndex);
-
-    return nextSlideIndex;
-  };
-
-  const autoScrollHandler = (slides, activeSlideIndex) => {
-    setInterval(() => {
-      activeSlideIndex = getNextSlide(slides, activeSlideIndex);
-    }, 3000);
-  };
-
-  const init = (sliderRoot, customConfig) => {
-    let activeSlideIndex = 0;
-
-    const defaultConfig = {
-      showNavigationButtons: false,
-      autoScroll: true,
-      customPlaceholder: "https://via.placeholder.com/400x200",
-    };
-
-    const config = Object.assign(defaultConfig, customConfig || {});
-
-    const slides = getSlides(sliderRoot);
-    const buttons = getButtons(sliderRoot);
-
-    if (slides.length === 0) {
-      getPlaceholder(sliderRoot, config.customPlaceholder);
+  initAutoscroll() {
+    if (!this.config.autoScroll || this.slides.length < 2) {
+      return;
     }
 
-    const initAutoScroll = () => {
-      if (config.autoScroll) {
-        autoScrollHandler(slides, activeSlideIndex);
-      }
-    };
-
-    const initNavigationButtons = () => {
-      if (config.showNavigationButtons) {
-        getButtons(sliderRoot);
-
-        buttons.nextButton.addEventListener("click", () => {
-          activeSlideIndex = getNextSlide(slides, activeSlideIndex);
-        });
-        buttons.prevButton.addEventListener("click", () => {
-          activeSlideIndex = getPrevSlide(slides, activeSlideIndex);
-        });
-      } else {
-        buttons.nextButton.remove();
-        buttons.prevButton.remove();
-      }
-    };
-
-    if (slides.length > 1) {
-      initNavigationButtons();
-      initAutoScroll();
-    } else {
-      buttons.nextButton.remove();
-      buttons.prevButton.remove();
+    if (this.timer) {
+      clearInterval(this.timer);
     }
 
-    buttons.nextButton.removeEventListener("click", () => {
-      activeSlideIndex = getNextSlide(slides, activeSlideIndex);
-    });
+    this.timer = setInterval(
+      () => this.selectNextSlide(),
+      this.config.intervalTime
+    );
+  }
 
-    buttons.prevButton.removeEventListener("click", () => {
-      activeSlideIndex = getPrevSlide(slides, activeSlideIndex);
-    });
-  };
+  initNavigation() {
+    if (!this.config.showNavigationButtons || this.slides.length < 2) {
+      this.buttons.nextButton.remove();
+      this.buttons.prevButton.remove();
+    }
+    this.buttons.nextButton.addEventListener("click", () =>
+      this.selectNextSlide()
+    );
+    this.buttons.prevButton.addEventListener("click", () =>
+      this.selectPrevSlide()
+    );
+  }
 
-  return {
-    init,
-    SLIDER_CLASSES,
-  };
-})();
+  init(customSliderRoot, customConfig) {
+    // init plugin main variables
+    this.sliderRoot = customSliderRoot;
+    this.slides = this.getSlides(this.sliderRoot);
+    this.buttons = this.getButtons(this.sliderRoot);
+    this.config = Object.assign(this.defaultConfig, customConfig || {});
+
+    // init plugin functionality
+    this.initPlaceholder();
+    this.initAutoscroll();
+    this.initNavigation();
+  }
+}
