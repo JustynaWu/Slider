@@ -1,0 +1,44 @@
+.slider {
+  display: block;
+}
+
+.slider-container {
+  display: inline-block;
+  position: relative;
+}
+
+.slider-list {
+  padding: 0;
+  margin: 0;
+}
+
+.slider-item {
+  display: none;
+}
+
+.slider-item-active {
+  display: block;
+}
+
+.slider-navigation-button {
+  position: absolute;
+  top: 50%;
+  transform: translate(0, -50%);
+}
+
+.slider-navigation-button-prev {
+  left: 0;
+}
+
+.slider-navigation-button-next {
+  right: 0;
+}
+
+.show-slider-navigation {
+  display: block;
+}
+
+.placeholder {
+  width: 400px;
+  height: 200px;
+}
